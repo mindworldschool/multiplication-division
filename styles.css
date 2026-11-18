@@ -16,48 +16,29 @@
   display: none !important;
 }
 
+/* Фон и шрифт страницы — из общей оболочки (body.mw-shell) */
 body{
-  height: 100%;
   margin:0;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   color:var(--ink);
-  background:#EC8D00;
 }
 
 .container{width:min(2400px,96vw);margin:0 auto;padding:0 8px}
 
-/* HERO */
-.hero{
-  position:relative;
-  background:linear-gradient(180deg,#EC8D00 0%,#E8654B 100%);
-  color:#fff;
-  padding:0px 0;
-}
-.hero-inner{
-  position:relative; max-width:2400px; margin:0 auto; padding:0 12px;
-  display:flex; align-items:center; justify-content:center;
-}
-.hero-brand{ position:absolute; left:20px; top:50%; transform:translateY(-50%); }
-.hero-brand img{ width:76px; height:auto; object-fit:contain; }
-.hero-title{ font-size:clamp(20px,2.5vw,32px); font-weight:800; text-shadow:0 2px 6px rgba(0,0,0,.18); white-space:nowrap; }
-.lang-capsule.lang--on-hero{
-  position:absolute; right:20px; top:50%; transform:translateY(-50%);
-  display:flex; gap:6px; background:transparent; border:1px solid rgba(255,255,255,.9);
-  border-radius:999px; padding:4px;
-}
-.lang--on-hero button{ border:0; background:transparent; color:#fff; padding:8px 12px; border-radius:999px; font-weight:800; cursor:pointer; }
-.lang--on-hero button.active{ background:#fff; color:#EC8D00; box-shadow:0 2px 8px rgba(0,0,0,.15); }
-
 /* СКРІНИ */
-.screen{ 
+/* Экраны — во всю ширину, без рамки карточки из оболочки (свои карточки внутри).
+   Высоту окна (100vh) не задаём: во фрейме сайта это высота самого фрейма,
+   а фрейм подстраивается под содержимое — высота росла бы сама от себя. */
+.screen{
   padding:40px 0;
   position: relative;
   z-index: 1;
+  max-width: none;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
 }
 
 .settings-screen {
-  background-color: #EC8D00;
-  min-height: 100vh;
   padding-top: 40px; 
   padding-bottom: 70px;
   z-index: 1;
@@ -154,8 +135,6 @@ body{
    ЭКРАН ИГРЫ - СОЛО РЕЖИМ
    ======================================== */
 .play-screen {
-  background-color: #EC8D00;
-  min-height: 100vh;
   padding: 20px 0;
   display: flex;
   flex-direction: column;
@@ -501,8 +480,6 @@ body{
 
 /* ЭКРАН РЕЗУЛЬТАТОВ */
 .results-screen {
-  background: #EC8D00;
-  min-height: 100vh;
   padding: 40px 0 80px;
   position: relative;
   z-index: 100;
@@ -798,65 +775,6 @@ body{
   .btn-row-top,
   .btn-row-bottom {
     grid-template-columns: 1fr;
-  }
-}
-
-/* ── HERO: компактная шапка ─────────────────────────── */
-.hero{ padding:10px 0; }
-
-@media (max-width: 980px){
-  .hero{ padding:8px 0; }
-  .hero-inner{
-    max-width:2400px;
-    margin:0 auto;
-    padding:0 10px;
-    display:grid;
-    grid-template-columns: 56px 1fr auto;
-    align-items:center;
-    gap:8px;
-  }
-  .hero-brand{ position:static !important; transform:none !important; }
-  .hero-brand img{ width:48px; height:auto; }
-
-  .hero-title{
-    margin:0;
-    text-align:center;
-    font-size:clamp(18px,3.6vw,24px);
-    line-height:1.15;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-
-  .lang-capsule{
-    position:static !important; transform:none !important;
-    margin-left:auto;
-    border-width:1px;
-    padding:2px 4px;
-    gap:4px;
-  }
-  .lang-capsule button{
-    padding:6px 8px;
-    font-size:13px;
-    border-radius:999px;
-  }
-}
-
-.lang-select{ display:none; }
-
-@media (max-width: 560px){
-  .hero{ padding:6px 0; }
-  .hero-inner{ grid-template-columns: 40px 1fr auto; gap:6px; }
-  .hero-brand img{ width:40px; }
-  .hero-title{ font-size:clamp(16px,4.2vw,20px); }
-
-  .lang-capsule{ display:none; }
-  .lang-select{
-    display:block;
-    appearance:none;
-    padding:6px 10px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.9);
-    background:transparent;
-    color:#fff; font-weight:800;
   }
 }
 
