@@ -42,7 +42,7 @@ const I18N = {
     modeDiv: "Ділення",
     modeMix: "Змішано (× і ÷)",
     all: "Усі",
-    battle: "Battle",
+    battle: "Двобій",
     player1: "Гравець 1",
     player2: "Гравець 2",
     finishBattle: "Завершити",
@@ -110,7 +110,7 @@ const I18N = {
     modeDiv: "Деление",
     modeMix: "Смешано (× и ÷)",
     all: "Все",
-    battle: "Battle",
+    battle: "Дуэль",
     player1: "Игрок 1",
     player2: "Игрок 2",
     finishBattle: "Завершить",
@@ -144,7 +144,7 @@ const I18N = {
     modeDiv: "División",
     modeMix: "Mixto (× y ÷)",
     all: "Todos",
-    battle: "Battle",
+    battle: "Duelo",
     player1: "Jugador 1",
     player2: "Jugador 2",
     finishBattle: "Terminar",
@@ -193,10 +193,7 @@ function pickEndPhrase(lang, acc){
 function T(key){ const t = I18N[state.lang] || I18N.ua; return t[key] ?? key; }
 function applyLang(lang){
   const t = I18N[lang] || I18N.ua;
-  document.documentElement.lang = lang;
-  document.title = `MindWorld — ${t.title}`;
-
-  qs('#pageTitle')?.replaceChildren(t.title);
+  // <html lang>, заголовок вкладки, название и кнопки языков ставит общая оболочка (MWShell)
 
   // settings
   qs('#lblMode')?.replaceChildren(t.mode);
@@ -252,26 +249,14 @@ function applyLang(lang){
   const ansInput2 = qs('#ansInput2'); ansInput2?.setAttribute('placeholder', t.answerPlaceholder);
   const submitBtn1 = qs('#submitBtn1'); if(submitBtn1) submitBtn1.textContent = t.answer;
   const submitBtn2 = qs('#submitBtn2'); if(submitBtn2) submitBtn2.textContent = t.answer;
-
-  // active lang capsule
-  qsa(".lang-capsule button").forEach(b=> b.classList.toggle("active", b.dataset.lang===lang));
 }
 
-/* ==== state (UPDATED WITH URL LOGIC) ==== */
-// 1. Функция для чтения ?lang=...
-const getUrlParam = (name) => {
-  const match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
-  return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-};
-
-// 2. Определяем язык: Ссылка > Сохраненное > UA
-const urlLang = getUrlParam('lang');
-const savedLang = localStorage.getItem("mw_lang");
-// Проверяем, есть ли такой язык в словаре I18N, иначе берем сохраненный или ua
-const initLang = (urlLang && I18N[urlLang]) ? urlLang : (savedLang || "ua");
+/* ==== state ==== */
+// Язык выбирает общая оболочка: ?lang= → сохранённый выбор → язык браузера → украинский
+const initLang = (window.MWShell && window.MWShell.getLang()) || "ua";
 
 const state = {
-  lang:   initLang,
+  lang:   I18N[initLang] ? initLang : "ua",
   mode:   localStorage.getItem("mw_mode")   || "mul",  // mul|div|rnd
   series: Number(localStorage.getItem("mw_series") || 10),
   digitsEnabled: localStorage.getItem("mw_digits_enabled")==="1",
@@ -299,19 +284,16 @@ function showScreen(name){
   scrPlay.hidden     = name!=='play';
   if(scrResults) scrResults.hidden = name!=='results';
   requestAnimationFrame(()=>window.scrollTo(0,0));
+  // На сайте фрейм после длинной игры резко уменьшается — карточка настроек
+  // или результатов может оказаться выше экрана. Просим страницу её показать.
+  // При загрузке страницы (первый показ настроек) ничего не прокручиваем.
+  const firstShow = !showScreen.shown; showScreen.shown = true;
+  if (!firstShow && (name === 'results' || name === 'settings') && window.MWShell && window.MWShell.reveal) {
+    const el = name === 'results' ? qs('.result-card') : qs('#screen-settings .panel');
+    setTimeout(()=>window.MWShell.reveal(el), 150);
+  }
 }
 
-/* ==== language capsule ==== */
-qsa(".lang-capsule button").forEach(b=>{
-  b.classList.toggle("active", b.dataset.lang===state.lang);
-  b.addEventListener("click", (e)=>{
-    e.preventDefault();
-    state.lang = b.dataset.lang;
-    localStorage.setItem("mw_lang", state.lang);
-    applyLang(state.lang);
-    safePlay(SND.click);
-  }, {capture:true});
-});
 
 /* ==== UI refs ==== */
 const modeSel      = qs("#modeSel");
@@ -401,8 +383,32 @@ if (state.digits.length && digitsGroup) {
 }
 syncAllChip();
 
-// apply language on load
-applyLang(state.lang);
+// Шапка и языки — общая оболочка; она же сразу сообщает выбранный язык
+if (window.MWShell) {
+  window.MWShell.init({
+    mount: '#mw-header',
+    title: { uk: 'Множення та ділення', en: 'Multiplication & Division', ru: 'Умножение и деление', es: 'Multiplicación y división' },
+    tagline: {
+      uk: 'Тренажер таблиці множення',
+      en: 'Times tables practice',
+      ru: 'Тренажёр таблицы умножения',
+      es: 'Práctica de las tablas de multiplicar'
+    },
+    docTitle: {
+      uk: 'Множення та ділення — MindWorld School',
+      en: 'Multiplication & Division — MindWorld School',
+      ru: 'Умножение и деление — MindWorld School',
+      es: 'Multiplicación y división — MindWorld School'
+    },
+    ukrainianCode: 'ua',
+    onLangChange: (lang) => {
+      state.lang = I18N[lang] ? lang : 'ua';
+      applyLang(state.lang);
+    }
+  });
+} else {
+  applyLang(state.lang);
+}
 
 /* ==== listeners (settings screen) ==== */
 modeSel?.addEventListener("change", ()=>{
@@ -584,6 +590,11 @@ function buildQuestionPoolsSplit(){
       poolDiv.push(mkDiv(d,q));
     }
   }
+  // На 0 делить нельзя. Если выбрана только таблица «0», деление на ней — это 0 ÷ 1…9 = 0
+  // (раньше пул деления оставался пустым)
+  if (!poolDiv.length && sel && sel.includes(0)){
+    for(let d=1; d<=9; d++) poolDiv.push(mkDiv(d,0));
+  }
   return {poolMul, poolDiv};
 }
 function shuffle(arr){ return arr.slice().sort(()=>Math.random()-0.5); }
@@ -658,9 +669,13 @@ function buildSeriesList(){
     }
   }
 
-  while (out.length < N){
+  // Добираем серию. Если в пуле есть не только примеры с нулём — нулевые пропускаем.
+  // Если выбрана одна таблица «0», все примеры с нулём: без этой проверки цикл был бесконечным
+  // и вкладка зависала.
+  const hasNonZero = allPool.some(q => !isZeroQuestion(q));
+  while (out.length < N && allPool.length){
     const q = allPool[Math.floor(Math.random()*allPool.length)];
-    if (isZeroQuestion(q) && zeroCount >= 1) continue;
+    if (hasNonZero && isZeroQuestion(q) && zeroCount >= 1) continue;
     const k = keyOf(q);
     used.set(k, (used.get(k)||0) + 1);
     if (isZeroQuestion(q)) zeroCount++;
